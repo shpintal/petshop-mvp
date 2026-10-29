@@ -1,0 +1,12 @@
+# Не дає безкоштовному сервісу Render заснути (засинає після 15 хв без трафіку).
+# GitHub може запускати розклад із запізненням, тому інтервал 5 хв із запасом.
+# Увага: GitHub вимикає розклад, якщо в репозиторії 60 днів не було комітів.
+name: Keep alive
+on:
+  schedule: [{ cron: "*/5 * * * *" }]
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS --retry 5 --retry-delay 20 --retry-all-errors --max-time 120 https://petshop-mvp-web.onrender.com/api/v1/health

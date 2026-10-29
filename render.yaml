@@ -1,15 +1,14 @@
 # Render Blueprint: https://render.com/docs/blueprint-spec
-# Free-план: сервіси засинають після 15 хв без трафіку (перший запит ~1 хв).
-# БД — Neon (free Postgres): DATABASE_URL вводиться під час створення Blueprint.
-# Якщо Render дасть сервісам інші адреси, ніж *.onrender.com нижче, — виправте
-# API_URL / SITE_URL / WEB_ORIGIN / API_ORIGIN і перезапустіть деплой вітрини.
+# Один free-сервіс: вітрина + API в одному контейнері (див. Dockerfile і deploy/start.mjs).
+# Free-сервіс засинає після 15 хв без трафіку — його будить .github/workflows/keepalive.yml.
+# БД — Neon (free Postgres): DATABASE_URL вводиться під час створення/синхронізації Blueprint.
 services:
   - type: web
-    name: petshop-mvp-api
+    name: petshop-mvp-web
     runtime: docker
     plan: free
     region: frankfurt
-    rootDir: apps/api
+    dockerContext: .
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/v1/health
     envVars:
@@ -17,32 +16,18 @@ services:
         sync: false
       - key: AUTH_SECRET
         generateValue: true
-      - key: HOST
-        value: 0.0.0.0
-      - key: PORT
-        value: "4000"
       - key: DEMO_SEED
         value: "1"
       - key: DEMO_OTP
         value: "1"
       - key: DB_POOL_MAX
         value: "5"
+      # API живе в тому ж контейнері; браузер ходить на /api/v1 вітрини (rewrite)
+      - key: API_URL
+        value: http://127.0.0.1:4000/api/v1
+      - key: SITE_URL
+        value: https://petshop-mvp-web.onrender.com
       - key: WEB_ORIGIN
         value: https://petshop-mvp-web.onrender.com
       - key: API_ORIGIN
-        value: https://petshop-mvp-api.onrender.com
-
-  - type: web
-    name: petshop-mvp-web
-    runtime: docker
-    plan: free
-    region: frankfurt
-    rootDir: apps/web
-    dockerfilePath: ./Dockerfile
-    envVars:
-      - key: PORT
-        value: "3000"
-      - key: API_URL
-        value: https://petshop-mvp-api.onrender.com/api/v1
-      - key: SITE_URL
         value: https://petshop-mvp-web.onrender.com
