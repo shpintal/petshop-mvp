@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.next/
+.data/
+*.log
+.env
+next-env.d.ts
+start-local.log
+run-api.ps1
+run-web.ps1
+*.tsbuildinfo
